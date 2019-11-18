@@ -1,59 +1,65 @@
-import React, { Component } from 'react';
-import * as THREE from 'three';
-class App extends Component{
-  componentDidMount(){
-    const width = this.mount.clientWidth
-    const height = this.mount.clientHeight
-    //ADD SCENE
-    this.scene = new THREE.Scene()
-    //ADD CAMERA
-    this.camera = new THREE.PerspectiveCamera(
-      75,
-      width / height,
-      0.1,
-      1000
-    )
-    this.camera.position.z = 4
-    //ADD RENDERER
-    this.renderer = new THREE.WebGLRenderer({ antialias: true })
-    this.renderer.setClearColor('#000000')
-    this.renderer.setSize(width, height)
-    this.mount.appendChild(this.renderer.domElement)
-    //ADD CUBE
-    const geometry = new THREE.BoxGeometry(1, 1, 1)
-    const material = new THREE.MeshBasicMaterial({ color: '#433F81'     })
-    this.cube = new THREE.Mesh(geometry, material)
-    this.scene.add(this.cube)
-this.start()
+import React, { Component } from "react";
+import * as THREE from "three";
+const OrbitControls = require("three-orbit-controls")(THREE);
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.animate = this.animate.bind(this);
+    this.addCube = this.addCube.bind(this);
+    this.initializeCamera = this.initializeCamera.bind(this);
+    this.initializeOrbits = this.initializeOrbits.bind(this);
   }
-componentWillUnmount(){
-    this.stop()
-    this.mount.removeChild(this.renderer.domElement)
+componentDidMount() {
+    const width = this.mount.clientWidth;
+    const height = this.mount.clientHeight;
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+    this.renderer.setSize(width, height);
+    this.mount.appendChild(this.renderer.domElement);
+    this.initializeOrbits();
+    this.initializeCamera();
+
+    const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    const material = new THREE.MeshBasicMaterial( { color: 0xFF00FF } );
+    this.cube = new THREE.Mesh( geometry, material );
+    this.scene.add( this.cube );
+    this.animate();
   }
-start = () => {
-    if (!this.frameId) {
-      this.frameId = requestAnimationFrame(this.animate)
-    }
+componentWillUnmount() {
+    cancelAnimationFrame(this.frameId);
+    this.mount.removeChild(this.renderer.domElement);
   }
-stop = () => {
-    cancelAnimationFrame(this.frameId)
+initializeOrbits() {
+    this.controls.rotateSpeed = 1.0;
+    this.controls.zoomSpeed = 1.2;
+    this.controls.panSpeed = 0.8;
   }
-animate = () => {
-   this.cube.rotation.x += 0.01
-   this.cube.rotation.y += 0.01
-   this.renderScene()
-   this.frameId = window.requestAnimationFrame(this.animate)
- }
-renderScene = () => {
-  this.renderer.render(this.scene, this.camera)
+initializeCamera() {
+    this.camera.position.x = 0;
+    this.camera.position.y = 0;
+    this.camera.position.z = 4;
+  }
+animate() {
+    this.frameId = window.requestAnimationFrame(this.animate);
+    this.renderer.render(this.scene, this.camera);
+  }
+addCube(cube) {
+    this.scene.add(cube);
+  }
+render() {
+    return (
+      <div>
+        <div
+          id="boardCanvas"
+          style={{ width: "100vw", height: "100vh" }}
+          ref={mount => {
+            this.mount = mount;
+          }}
+        />
+      </div>
+    );
+  }
 }
-render(){
-    return(
-      <div
-        style={{ width: '400px', height: '400px' }}
-        ref={(mount) => { this.mount = mount }}
-      />
-    )
-  }
-}
-export default App
+export default App;
